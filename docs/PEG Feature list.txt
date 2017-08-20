@@ -1,0 +1,58 @@
+PEG Feature list
+
+- general
+    x- allow/strip multiple whitespaces
+    - comments with quote marks "normally $65"
+
+- calculations 
+    x- +-/*^ 
+    x- order of operations
+    ?- one per line
+    x- keywords: times, divided by, plus, minus
+    x- 'sum' or 'total' or '---' all lines since last sum
+    x- allow K and M for 1000 and 1,000,000
+    x- 'round' value eg. 6.55 -> 7 
+    x- compound interest eg. $600 at 5% pa
+    
+- variables
+    x- set variable with = or 'is'
+    x- use variables in calculations
+    
+- currency
+    - set common currency $, € etc.
+    - parse ISO 4217 codes after number too: AUD, USD etc (5 USD)
+    - include optional cents (decimal) (http://stackoverflow.com/questions/308122/simple-regular-expression-for-a-decimal-with-a-precision-of-2)
+    - currency conversion via plugin (eg. 30 USD in AUD)
+    
+- percentages
+    x- 'of' keyword (20% of $5)
+    x- 'off' keyword (10% off $30)
+    x- 'on' keyword (50% on $100)
+    
+- dates
+    - convert keywords 'today', 'now', 'tomorrow', 'yesterday', 'next thursday' to dates
+    - parse second, minute, hour, day, week, month, year
+    - eg. today plus 10 days
+    
+
+- keywords
+    - minute(s)
+    - second(s)
+    - hour(s)
+    - day(s)
+    - week(s)
+    - month(s)
+    - year(s)
+    - kg
+    - g
+    - K/k
+    - M/m
+    - %
+    - $
+    - pa
+    - sum / total
+    - times
+    - plus
+    - divided (by)
+    - minus
+    - is

@@ -1,0 +1,393 @@
+{
+  var g_variables = [];
+  
+  var getJSON = function(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+      var status = xhr.status;
+      if (status == 200) {
+        callback(null, xhr.response);
+      } else {
+        callback(status);
+      }
+    };
+    xhr.send();
+  }
+
+  // eg. compound(500, 5, 1, 12)
+  function compound(input, interest, length, freq) {
+    var accumulated = input, i
+    interest = interest/100 
+    if (!freq) freq = 12 // compounding monthly
+    for (i=0; i < length*freq; i++) {
+      accumulated += (interest/freq * accumulated)
+    }
+    return accumulated;
+  }
+  
+  function prettyDate(date) {
+    var hours = date.getHours(),
+    minutes = date.getMinutes();
+    var ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0'+minutes : minutes;
+    var strTime = date.getDate() + '/' + (parseInt(date.getMonth())+1) + '/' + date.getFullYear() + ' ' + hours + ':' + minutes + ' ' + ampm;
+    return strTime;
+  }
+  
+  function convertQty(value, suffix) {
+    var result = value, newSuffix = suffix;
+    if (suffix == 'K') result = value * 1000;
+    if (suffix == 'M') result = value * 1000000;
+    
+    if (suffix == 'g' || suffix == 'b'  || suffix == 'm') {
+      result = value / 1000;
+      newSuffix = 'k' + suffix;
+    }
+    
+    if (suffix == 'ml') {
+      result = value / 1000;
+      newSuffix = 'l';
+    }    
+    return [result, newSuffix];
+  }
+  
+  function chooseSuffix(value, suffix) {
+    var [result, newSuffix] = [value, suffix];
+    if (value < 1 && (suffix == 'kg' || suffix == 'km' || suffix == 'kb')) {
+      result = value * 1000;
+      newSuffix = suffix.substr(1);
+    }
+    return [result, newSuffix];
+  }
+  
+  function inVariableArray(word) {
+   var i;
+   for (i = 0; i < g_variables.length; i++) {
+     var variable = g_variables[i];
+     if (variable.name === word) {
+       return true; 
+       break;
+     }
+   }
+   return false;
+  }
+}
+
+start 
+  = (
+  comment
+  / blankline
+  / compoundInterest
+  / getTime
+  / calculation
+  / wordsline
+  / variable
+  )*
+
+calculation 'calculation'
+  = _ result:(expression) _ !expression nl?
+  { 
+    var type = (result.type) ? result.type : 'expression';
+    var output = {type: type, prefix: result.prefix, suffix: result.suffix, value: result.value};
+    return output; 
+  }
+
+expression
+  = head:term tail:(_ ('+' / '-' / 'plus' / 'minus') _ term)*
+  {
+    var result = head.value, i;
+    var prefix = (head.prefix) ? head.prefix :'';
+    var suffix = (head.suffix) ? head.suffix :'';
+    
+    for (i = 0; i < tail.length; i++) {
+      var op = tail[i][1];
+      var value = tail[i][3];
+      if (value.prefix) { prefix = value.prefix; }
+      if (value.suffix) { suffix = value.suffix; }
+      
+      if (op === '+' || op === 'plus') { result += value.value; }
+      if (op === '-' || op === 'minus') { result -= value.value; }
+    }
+
+    var parseSuffix = chooseSuffix(result, suffix);
+    return {type: 'expression', prefix: prefix, suffix: parseSuffix[1], value: Math.round(parseSuffix[0] * 100) / 100};
+  }
+
+term
+  = head:(factor) tail:(_ ('*' / '/' / 'times' / 'at' / 'divided by' / 'divided' / '^') _ factor)* _ words* floatOrIntRaw*
+  {
+    var result = head.value, i;
+    var prefix = (head.prefix) ? head.prefix :'';
+    var suffix = (head.suffix) ? head.suffix :'';
+  
+    for (i = 0; i < tail.length; i++) {
+      var op = tail[i][1];
+      var value = tail[i][3];
+      
+      if (value.prefix) { prefix = value.prefix; }
+      if (value.suffix) { suffix = value.suffix; }
+      if (op === '*' || op === 'times' || op === 'at') { result *= value.value; }
+      if (op === '/' || op === 'divided by' || op === 'divided') {  result /= value.value; }
+      if (op === '^') {  result = Math.pow(result, value.value); }
+    }
+    
+    return {type: '', prefix: prefix, suffix: suffix, value: result};
+  }
+
+factor 'factor'
+  = '(' _ expr:expression _ ')' 
+    { return {type: 'brackets', value: expr.value}; }
+  / symbol
+  / percentOf
+  / percentOn
+  / percentOff
+  / quantity
+  / currencyConvert
+  / currency
+  / floatOrInt
+  / isVariable
+  / sum
+  
+
+sum 'sum up previous lines'
+  = ('sum'i / 'total'i) (__ / _)
+  {
+    var sum = 0, prefix = '', suffix = '', i;
+    for (i = 0; i < g_variables.length; i++) {
+      var variable = g_variables[i];
+      if (variable.type == 'variable') {
+        var value = variable.value;
+        sum += value.value;
+        if (value.prefix) { prefix = value.prefix; }
+        if (value.suffix) { suffix = value.suffix; }
+      }
+    }
+    
+    return { type: 'sum', prefix: prefix, suffix: suffix, value: sum };
+  }
+
+variable 'variable'
+  = _ name:(alphanumeric) tag:(_'='_ / _':'_ / __'is'__) value:expression _ words* nl?
+  { 
+    var type = 'variable';
+    if (tag[1] === '=') type = 'constant';  
+    var variable =  { type: type, name: name, value: value };
+    g_variables.push(variable);
+    return variable;
+  }
+  
+symbol 'symbol'
+  = float / integer '%' _ !('of')
+  { 
+    return '1';
+  }
+  
+currency 'currency'
+  = prefix:('$') value: (float / integer) suffix:('M' / 'K'i)* 
+  { 
+    var parseVal = convertQty(value, suffix);
+    return {type: 'currency', prefix: prefix, value: parseVal[0]}; 
+  }
+  
+currencyConvert 'convert currency'
+  = prefix:currencies ('$')* value: (float / integer) suffix:('M' / 'K')* 
+  { 
+    var parseVal = convertQty(value, suffix);
+    return {type: 'convert', prefix: prefix, suffix: 'currency', value: parseVal[0]}; 
+  } 
+
+percentOff 'percentage off'
+  = p:floatOrIntRaw ('%'  __ 'off' __) value:expression
+  { 
+    return { type: 'percentOf', prefix: value.prefix, value: Math.round((value.value-(p/100*value.value)) * 100) / 100 }; 
+  }
+
+percentOf 'percentage of'
+  = p:floatOrIntRaw ('%'  __ 'of' __) value:expression
+  { 
+    return { type: 'percentOf', prefix: value.prefix, value: Math.round((p/100*value.value) * 100) / 100 }; 
+  }
+  
+percentOn 'percentage on'
+  = p:floatOrIntRaw ('%'  __ 'on' __) value:expression
+  { 
+    return { type: 'percentOf', prefix: value.prefix, value: Math.round((value.value+(p/100*value.value)) * 100) / 100 };
+  }
+
+compoundInterest 'compound interest'
+  = _ value:(currency / floatOrInt) _ ('at') _ p:floatOrIntRaw ('%'  _ 'pa' _) nl?
+  { 
+    var accumulated = compound(value.value, p, 1, 12);
+    return { type: 'compound interest', prefix: value.prefix, value: Math.round(accumulated * 100) / 100 }; 
+  }
+  
+floatOrInt 'float or int'
+  = value:floatOrIntRaw suffix:('M' / 'K'i)*
+  { 
+    if (suffix) value = convertQty(value, suffix)[0];
+    return {type: 'number', value: Math.round(value * 100) / 100}; 
+  }
+
+quantity 'quantity with suffix'
+  = value:floatOrIntRaw _ suffix:suffixes
+  { 
+    var parseVal = convertQty(value, suffix);
+    return {type: 'number', suffix: parseVal[1], value: Math.round(parseVal[0] * 100) / 100}; 
+  }
+
+getTime 'get current time'
+  = _ ('now' / 'today') [:=_]* _ nl?
+  {
+    var date;
+    var d = new Date();
+    return { type: 'time', value: prettyDate(d) };
+  }
+
+floatOrIntRaw 'float or int'
+  = ([0-9]*[.])?[0-9]+
+  { return text(); }
+
+float 'float'
+  = ([0-9]*[.])[0-9]+
+ { return Math.round(text() * 100) / 100; }
+
+integer 'integer'
+  = [0-9]+
+  { return parseInt(text(), 10); }
+
+round 'round'
+  = 'round(' argument:factor ')'
+  { return Math.round(argument); }
+   
+comment 'comment'
+  = c:(oneLineComment / inlineComment)
+  { return { type: c.type, value: c.value }; }
+
+oneLineComment 'inline comment'
+  = '//' _ c:(!nl (.))* nl?
+  { 
+    var comment = c.join('').replace(/,/g , '');
+    return { type: 'comment', value: comment }; 
+  }
+  
+inlineComment 'inline comment'
+  = '"' _ c:(!nl (.))* nl
+  { 
+    var comment = c.join('').replace(/,/g , '');
+    return { type: 'comment', value: comment }; 
+  }
+ 
+isVariable 'check array for matching constant'
+  = w:alphanumeric !(_'='_ / _':'_ / __'is'__)
+  { 
+    var i;
+    for (i = 0; i < g_variables.length; i++) {
+      var variable = g_variables[i];
+      if (variable.name === w) {
+      console.log(variable.name)
+        return { type:'constant', prefix: variable.value.prefix, suffix: variable.value.suffix, value: variable.value.value}; 
+        break;
+      }
+    }
+    return { type:'words', value: ''};  
+  }
+
+wordsline 'line of words'
+  = _ w:(word _)* nl
+  { return { type: 'words', value:w }; }
+
+words 'words'
+  = _ w:word _ nl?
+  { return w; }
+
+word 'word'
+  = !reserved l:letter+
+  { return l.join(''); }
+  
+alphanumeric 'alphanumeric'
+  = !reserved l:[a-zA-Z0-9_]+ 
+  { return l.join(''); }
+
+blankline 'blank line'
+  = _ [-]* nl
+  { return { type: 'blank'}; }
+  
+reserved 'reserved word'
+  = 'sum'i 
+  / 'total'i
+  / 'pa'i
+  / 'at'i
+  / 'minus'i __
+  / 'plus'i __
+  / 'times'i __
+  / 'divided'i __
+  / 'divided by'i __
+  / 'now'
+  / 'today'
+
+suffixes 'suffixes'
+  = 'kg'i
+  / 'mg'i
+  / 'ft'i
+  / 'ml'i
+  / 'mm'i
+  / 'cm'i
+  / 'km'i
+  / 'kb'i
+  / 'mb'i
+  / 'g'i  
+  / 'l'i
+  / 'm'
+  / 'b'i
+  
+ currencies 'currencies'
+  = 'AUD'i
+  / 'BGN'i
+  / 'BRL'i
+  / 'CAD'i
+  / 'CNY'i
+  / 'DKK'i
+  / 'GBP'i
+  / 'HKD'i
+  / 'HRK'i
+  / 'HUF'i
+  / 'IDR'i
+  / 'ILS'i
+  / 'INR'i
+  / 'JPY'i
+  / 'KRW'i
+  / 'MXN'i
+  / 'MYR'i
+  / 'NOK'i
+  / 'NZD'i
+  / 'PHP'i
+  / 'PLN'i
+  / 'RON'i
+  / 'RUB'i
+  / 'SEK'i
+  / 'SGD'i
+  / 'THB'i
+  / 'TRY'i
+  / 'USD'i
+  / 'ZAR'i
+  / 'EUR'i
+
+letter
+  = [a-zA-Z=_.,?&#(]
+
+nl 'new line'
+  = '\n'
+  / '\r\n'
+  / '\r'
+  / '\u2028'
+  / '\u2029'    
+    
+__ 'required whitespace'
+  = [ \t]+
+ 
+_ 'optional whitespace'
+  = [ \t]*
