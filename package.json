@@ -1,5 +1,5 @@
 {
-  "name": "tallly",
+  "name": "tinysums",
   "description": "Calculate stuff using plain words",
   "version": "1.0.0",
   "author": "Sean Ockert",
@@ -9,14 +9,16 @@
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
   },
   "dependencies": {
-    "autosize": "^3.0.20",
+    "axios": "^0.16.2",
     "codeflask": "^0.2.0",
     "fastclick": "^1.0.6",
     "lodash.debounce": "^4.0.8",
     "pegjs": "^0.10.0",
     "prismjs": "^1.6.0",
     "vue": "^2.1.0",
-    "vue-clipboards": "^1.0.2",
+    "vue-autosize": "^1.0.2",
+    "vue-axios": "^2.0.2",
+    "vue-clipboard2": "0.0.6",
     "vue-offcanvas-simple": "^1.0.3",
     "vue-router": "^2.2.0"
   },

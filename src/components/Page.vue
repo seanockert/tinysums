@@ -1,19 +1,34 @@
 <template>
   <div :data-id=page.id id="page">
     <div class="note">
-      <textarea :value="input" @input="update" id="input"></textarea>
-      <div id="output" class="output" v-html="compiledText">
+      <textarea :value="input" @input="updateTextarea" id="input" v-autosize="input">{{ input }}</textarea>
+      <div id="output" class="output">
+        <div class="item" v-for="(line, index) in output" :key="index">
+          <a href="#" 
+             title="Click to copy value" 
+             v-clipboard:copy="line" 
+             v-clipboard:success="copySuccess" 
+             v-clipboard:error="copyError"
+          >{{ line }}
+          </a>
+        </div>
+      </div>
     </div>
 
     <div class="options">
       <div class="left">
-        <!--<button class="button" @click="changeCurrency()">{{ page.currency }}</button>-->
         <select v-model="page.currency">
           <option v-for="currency in supportedCurrencies">{{ currency }}</option>
         </select>
       </div>    
       <div class="right">
-        <button class="button" @click="copyAll()">Share &rarr;</button>
+        <button 
+          class="button button-share" 
+          v-clipboard:copy="rawOutput"
+          v-clipboard:success="copySuccess"
+          v-clipboard:error="copyError">
+          Share &rarr;
+        </button>
       </div>
     </div>
   </div>
@@ -27,7 +42,6 @@ const debounce = require('lodash.debounce')
 
 import Peg from '../parser.js'
 
-
 //const peg = require("pegjs");
 //var parser = peg.generate("start = ('a' / 'b')+");
 
@@ -35,7 +49,7 @@ export default {
   name: 'page',
   data: function () {
     return {
-      copyData: 'your mum',
+      copyData: 'testing-copy',
       page: { 
         id: 0,
         title: '',
@@ -45,8 +59,10 @@ export default {
       input: '// Add up some stuff\r\ndays = 15\r\nfood: $12 * days\r\ntransport: $3.50 * days\r\n\r\nsum\r\n\r\n20kg plus 1900g\r\n$4000.22 at 3% pa\r\n32% off $429\r\nnow',
       currencies: '',
       supportedCurrencies: ['AUD', 'USD', 'CAD', 'GBP', 'EUR', 'JPY', 'THB', 'HKD', 'NZD', 'CHF', 'MXN', 'CNY'],
+      // Full list
       //supportedCurrencies: ['AUD', 'BGN', 'BRL', 'CAD', 'CNY', 'DKK', 'GBP', 'HKD', 'HRK', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'USD', 'ZAR', 'EUR'],
       output: [],
+      rawOutput: [],
       store: []
     }  
   },  
@@ -55,8 +71,10 @@ export default {
     if (data) {
       this.page.id = data.id
       this.input = data.input
+      this.rawOutput = data.rawOutput
     }
     
+    this.output = this.parseText(this.input)
     this.currencies = this.populateCurrencies()
   },
   watch: {
@@ -65,47 +83,58 @@ export default {
   computed: {
     compiledText: function () {
       return this.parseText(this.input)
-    }  
+    }
   },
+
   methods: {
-    update: debounce(function (e) {
+
+    updateTextarea: debounce(function (e) {
       this.input = e.target.value
+      this.output = this.parseText(this.input)
+
     }, 300),
     parseText(input) {
-      var currentOutput = this.output
+
+      var output = this.output
+
       try {
         var parsed = Peg.parse(input)
 
-        var i, output = '';
+        var i, output = [];
         
         for (i = 0; i < parsed.length; i++) { 
-          console.log(parsed[i].type);
+          //console.log('type:" + parsed[i].type);
           if (parsed[i].type == 'comment' || parsed[i].type == 'blank' || parsed[i].type == 'words' || parsed[i].value == '') {
-            output += '<div class="item empty">&nbsp;</div>'
+            output.push('\n')
           } else {
             var line = parsed[i].value;
             
             if (typeof line === 'object' ) {
               var prefix = (line.prefix) ? line.prefix : '';
               var suffix = (line.suffix) ? line.suffix : '';
-              output += this.wrapLine(line.value, prefix, suffix)
+              line = line.value
             } else if (line) {
               var prefix = (parsed[i].prefix) ? parsed[i].prefix : '';
               var suffix = (parsed[i].suffix) ? parsed[i].suffix : '';
-              output += this.wrapLine(line, prefix, suffix)
-            } 
+            }
+
+            output.push(this.constructLine(line, prefix, suffix))
+              
           }
         }
-        this.output = output
+
+        this.generateRawOutput(output)
         this.saveData()
         return output  
       }
       catch(err) {
         console.log(err)
       }
-      return currentOutput
+      return output
+
     },
-    wrapLine(line, prefix, suffix) {
+
+    constructLine(line, prefix, suffix) {
 
       if (suffix != 'currency') {
         if (prefix) {
@@ -114,31 +143,38 @@ export default {
           line = this.formatNumber(line, '', 0)
         }
       } else {
-        var index = this.supportedCurrencies.indexOf(prefix.toUpperCase())
-        if (index != -1) {
-          var convertedVal = this.formatNumber(parseFloat(line)/this.currencies.rates[this.supportedCurrencies[index]], '')
-          line = this.page.currencySymbol + convertedVal
+        if (prefix.toUpperCase() != this.page.currency) {
+          var index = this.supportedCurrencies.indexOf(prefix.toUpperCase())
+          if (index != -1) {
+            var convertedVal = this.formatNumber(parseFloat(line)/this.currencies.rates[this.supportedCurrencies[index]], '')
+            line = this.page.currency + this.page.currencySymbol + convertedVal
+          }
+        } else {
+          line = this.formatNumber(line, '$', 2)
         }
       }
       
       if (!prefix && suffix) {
         line = line + suffix
       }
-      return '<div class="item"><a href="#" title="Click to copy value" v-clipboard="copyData" @success="copySuccess" @error="copyError">' + line + '</a></div>'
+      return line
+
     },
     copySuccess(e) {
-      console.log('Copied');
+      console.log('Copied')
     },
     copyError(e) {
-      console.log('Copy error');
+      console.log('Copy error')
     },
-    copyAll(e) {
-      console.log('Copy all');
-    },
-    changeCurrency(e) {
-      this.page.currency = 'USD'
+    copyItem(e) {
+      console.log('Copy item')
     },
     formatNumber(n, prefix, c, d, t) {
+      // Format currency
+      // n = number
+      // c = decimal places
+      // d = decimal point
+      // t = thousand separator
       var c = isNaN(c = Math.abs(c)) ? 2 : c, 
           d = d == undefined ? '.' : d, 
           t = t == undefined ? ',' : t, 
@@ -148,14 +184,18 @@ export default {
           j = (j = i.length) > 3 ? j % 3 : 0;
       
       return prefix + s + (j ? i.substr(0, j) + t : '') + i.substr(j).replace(/(\d{3})(?=\d)/g, '$1' + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : '');
+
     },
     saveData: function() {
-      console.log('save')
-      
+
+      //console.log('Save')
+
       if (this.input) {
+
         const saveData = { 
           id: this.page.id,
-          input: this.input
+          input: this.input,
+          rawOutput: this.rawOutput
         }
 
         if (this.store[this.page.id]) {
@@ -170,10 +210,33 @@ export default {
       }  
     },
     fetchData: function() {
+
+      // Get the stored data from a cookie
       this.store = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
       return this.store[0]
+
+    },
+    generateRawOutput(outputArray) {
+
+      var inputArray = this.input.split('\n')
+      var output = ''
+
+      for(var i = 0; i < inputArray.length; ++i) {
+        if (outputArray[i]) {
+          if (outputArray[i] == '\n') {
+            output += '\n'
+          } else {
+            output += inputArray[i] + ' = ' + outputArray[i] + '\n'
+          }
+          
+        }
+      } 
+      this.rawOutput = output
+      return output
+
     },
     populateCurrencies: function() {
+
       // Check for cookie
       console.log('Populate currencies')
       var currencies, storedCurrencies = JSON.parse(localStorage.getItem(CURRENCY_KEY))
@@ -193,14 +256,20 @@ export default {
         }        
       }
       return currencies
+
     },
     fetchCurrencies: function() {
-      // var currencies = $http.JSON(https://api.fixer.io/latest?base=this.page.currency) ...
+
+      var currencies = this.axios.get('https://api.fixer.io/latest?base=this.page.currency').then((response) => {
+        return response.data
+      })
+      // Used for testing
       var currencies = {"base":"AUD","date":"2017-04-10","rates":{"BGN":1.3851,"BRL":2.3495,"CAD":1.0025,"CHF":0.75652,"CNY":5.1715,"CZK":18.788,"DKK":5.2665,"GBP":0.60436,"HKD":5.8208,"HRK":5.2656,"HUF":220.5,"IDR":9949.0,"ILS":2.7433,"INR":48.365,"JPY":83.371,"KRW":855.67,"MXN":13.994,"MYR":3.3229,"NOK":6.4761,"NZD":1.0792,"PHP":37.176,"PLN":2.9955,"RON":3.1953,"RUB":42.849,"SEK":6.8058,"SGD":1.0538,"THB":25.958,"TRY":2.797,"USD":0.74915,"ZAR":10.405,"EUR":0.70822}}
       var now = Math.round(new Date().getTime() / 1000)
       // Set a cookie with this value
       localStorage.setItem(CURRENCY_KEY, JSON.stringify({ timestamp: now, data: currencies })) 
       return currencies
+
     }
   },
   filters: {
@@ -221,12 +290,13 @@ export default {
 
 .note {
   max-width: 720px;
+  //max-width: 100%;
   margin: 0 auto;
   position: relative;
 }  
 
 header {
-  padding: $base-padding*2;
+  padding: $base-padding*2 $base-padding;
   
   h2 {
     color: #fafafa;
@@ -237,6 +307,7 @@ header {
     background-color: $color-teal;
     border-radius: 2px;
     padding: 5px 8px;
+    padding-top: 7px;
     line-height: 1;
     display: inline-block;
     float: left;
@@ -268,7 +339,7 @@ textarea {
   border: 0;
   height: inherit;
   width: 100%;
-  min-height: 400px;
+  min-height: calc(100vh - 125px);
   background-color: transparent;
   outline: none;
   resize: none;
@@ -280,7 +351,7 @@ textarea,
   font-size: 1em;
   line-height: 1.5;
   text-align: left;
-  padding: $base-padding*2;
+  padding: $base-padding;
   padding-top: 0;
 }
 
@@ -307,11 +378,15 @@ textarea,
     border-radius: 30px;
     transition: all 0.15s ease-out;
     
-    &:hover, &:focus {
+    &:hover {
       color: #fff;
       background-color: $color-teal
     }
     
+    &:focus {
+      outline: none;
+    }
+
     &:active {
       background-color: darken($color-teal, 10%)
     }
@@ -326,6 +401,10 @@ textarea,
   padding: $base-padding*2;
   
   
+  select {
+    border: 1px solid #ddd;
+    padding: 12px;
+  }
 }
 
 .right { float: right }
@@ -333,11 +412,18 @@ textarea,
 
 
 @media (min-width: 560px) {
+  header {
+    padding: $base-padding*2;
+  }
+
   textarea, 
   .output {
     font-size: 1.2em;
     line-height: 1.5;
+    padding: $base-padding*2;
   }
 }
+
+
 
 </style>

@@ -346,7 +346,6 @@ module.exports = /*
             for (i = 0; i < g_variables.length; i++) {
               var variable = g_variables[i];
               if (variable.name === w) {
-              console.log(variable.name)
                 return { type:'constant', prefix: variable.value.prefix, suffix: variable.value.suffix, value: variable.value.value}; 
                 break;
               }

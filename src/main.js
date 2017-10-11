@@ -10,24 +10,35 @@ if ('addEventListener' in document) {
   }, false)
 }
 
-import Autosize from 'autosize'
-Autosize(document.querySelector('textarea'))
+//import Autosize from 'autosize'
+//Autosize(document.querySelector('textarea'))
+
+var VueAutosize = require('vue-autosize')
+Vue.use(VueAutosize)
 
 import Prism from 'prismjs'
 //import Codeflask from 'codeflask'
 
-import VueClipboards from 'vue-clipboards'
-Vue.use(VueClipboards)
+//import VueClipboards from 'vue-clipboards'
+//Vue.use(VueClipboards)
+
+import VueClipboard from 'vue-clipboard2'
+Vue.use(VueClipboard)
 
 // Init router
 import VueRouter from 'vue-router'
 Vue.use(VueRouter)
 
+// Init http requester
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+Vue.use(VueAxios, axios)
+
 //console.log(window.location.pathname);
 // Set up possible routes
 const routes = [
   { path: '/', exact: true, name: 'page', component: Page },
-  { path: '/:page', name: 'page', component: Page }
+  //{ path: '/:page', name: 'page', component: Page }
 ]
 
 const router = new VueRouter({

@@ -3,7 +3,7 @@
     <header>
       <h2><em>Tiny</em>Sums</h2> <!--<small> Make quick calculations.</small>-->
       <button class="button right" @click="show = !show">Help</button>
-      
+      <div class="clear"></div>
     </header>
     <transition :name="transitionName" mode="out-in">
       <router-view :key="key"></router-view>
@@ -11,28 +11,28 @@
     
     <off-canvas v-model="show" align="right" :width="380" :duration=".3" effect="ease-in-out" @sidebarWasClosed="show = $event">
       <div class="help">
-        <h2>Here's what you can do.</h2>
+        <h2>Here's how you can use TinySums.</h2>
         <button class="button close" @click="show = false">&times;</button>
         
         <ul class="no-list">
           <li>
             <h3>Simple calculations</h3>
-            <p>Use + (plus), - (minus), * (times) and / (divided by). Use brackets for order-of operations</p>
+            <p>Use <code>+</code> (plus), <code>-</code> (minus), <code>*</code> (times) and <code>/</code> (divided by). Use brackets for order-of operations</p>
             <div><span>2+3*8</span> <em>26</em><br>
             <span>5 divided by 3 times (6 plus 2)</span> <em>13</em></div>
           </li>
           <li>
             <h3>Money</h3>
-            <p>Defaults to $ and rounds to 2 decimal places. Accepts K (thousand) and M (million) suffix</p>
+            <p>Defaults to $ and rounds to 2 decimal places. Accepts <code>K</code> (thousand) and <code>M</code> (million) suffix</p>
             <div><span>$40 /1.4</span> <em>$28.57</em></div>
           </li>
           <li>
             <h3>Constants and Variables</h3>
-            <p>Constant: give a value a label to use it in calculations. Use '=' sign. You must set a constant or variable before using it.</p>
+            <p>Constant: give a value a label to use it in calculations. Use <code>=</code> sign. You must set a constant or variable before using it.</p>
             <div><span>Days = 7</span> <em>7</em><br>
             <span>$25 * Days</span> <em>$175</em></div>
             
-            <p>Variable: like constants but are included in the Sum (see below). Use ':' or 'is'. Variables are case-sensitive.</p>
+            <p>Variable: like constants but are included in the Sum (see below). Use <code>:</code> or <code>is</code>. Variables are case-sensitive.</p>
             <div><span>Transport: $120</span> <em>$120</em><br>
             <span>Food is $64</span> <em>$64</em><br>
             <span>Transport + Food</span> <em>$184</em></div>
@@ -47,7 +47,8 @@
           </li>
           <li>
             <h3>Percentages</h3>
-            <p>Use 'of', 'off' and 'on'. TODO: fix error when % added in calculations</p>
+            <p>Use <code>of</code>, <code>off</code> and <code>on</code>.</p>
+            <p>TODO: fix error when % added in calculations</p>
             <div><span>10% of $120</span> <em>$12</em><br>
             <span>10% off $120</span> <em>$108</em><br>
             <span>10% on $120</span> <em>$132</em></div>
@@ -56,23 +57,26 @@
             <h3>Comments</h3>
             <p>Add a comment or stop a line from being calculated</p>
             <div><span>// This is a comment</span> <em>&nbsp;</em><br>
-            <div><span>"This is another comment"</span> <em>&nbsp;</em></div>
+            <span>"This is another comment"</span> <em>&nbsp;</em></div>
           </li>
           <li>
             <h3>Convert currency</h3>
-            <p>Convert another currency to your base currency TODO: base currency selector and make this work</p>
+            <p>Convert another currency to your base currency TODO: base currency selector</p>
             <div><span>USD150</span> <em>$200</em></div>
           </li>
           <li>
             <h3>Quantities</h3>
-            <p>Add quantifiers to numbers: mg, g, kg. ml, l. mm, cm, m, km. b, kb, mb. m. ft. TODO: fix calculation between units</p>
+            <p>Add quantifiers to numbers:</p> 
+              <p><code>mg</code>, <code>g</code>, <code>kg</code>. <code>ml</code>, <code>l</code>. <code>mm</code>, <code>cm</code>, <code>m</code>, <code>km</code>. <code>b</code>, <code>kb</code>, <code>mb</code>, <code>ft</code></p> 
+              <p>TODO: fix calculation between units</p>
             <div><span>200g + 2kg</span> <em>2.2kg</em></div>
           </li>
           <li>
             <h3>Time</h3>
-            <p>Gets the current date and time. TODO: allow adding/subtracting days</p>
-            <div><span>now</span> <em>11/6/2017 9:49 pm</em><br>
-            <span>today</span> <em>11/6/2017 9:49 pm</em></div>
+            <p>Gets the current date and time.</p> 
+            <p>TODO: allow adding/subtracting days</p>
+            <div><span>now</span> <em>11/6/2017 9:49 pm</em></div>
+            <div><span>today</span> <em>11/6/2017 9:49 pm</em></div>
           </li>
           <li>
             <h3>Compound interest</h3>
@@ -82,7 +86,7 @@
           <li>
             <h3>Date ranges</h3>
             <p>Calculate days between ranges. COMING SOON</p>
-            <div><span>today to 20/10/2018</span> <em>asd</em></div>
+            <div><span>today to 20/10/2018</span> <em></em></div>
           </li>
         </ul> 
          
@@ -98,7 +102,7 @@ export default {
   name: 'app',
   data () {
     return {
-      title: 'Tiny Sums',
+      title: 'TinySums',
       transitionName: 'fade',
       show: false
     }
@@ -150,6 +154,10 @@ html, body, #app {
   color: $color-dark-blue;
 }
 
+.clear {
+  clear: both;
+}
+
 h1, h2 {
   font-weight: normal;
 }
@@ -168,6 +176,10 @@ a {
   color: $color-teal;
   text-decoration: none;
   transition: all 0.15s ease-out;
+}
+
+code {
+  color: $color-teal;
 }
 
 .button {
