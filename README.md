@@ -4,6 +4,8 @@ A little text area that lets you calculate stuff with natural language
 
 Based on PEG parser, allows you to set variables and do back of the envelope calculations line by line. Useful for when you don't need something as complex as a spreadsheet.  
 
+(Demo here)[https://so-tinysums.surge.sh]
+
 ### Example:
 days = 15
 
@@ -50,6 +52,5 @@ sum
 - comment with quote marks "normally $65"
 
 # TODO
-- Re-do layout with flexbox
-- Improve error handling
-- Get demo up
+- Add syntax highlighting (Codeflask)
+- Improve error handling (gracefully fail Peg parser)

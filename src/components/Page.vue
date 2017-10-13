@@ -1,7 +1,7 @@
 <template>
   <div :data-id=page.id id="page">
     <div class="note">
-      <textarea :value="input" @input="updateTextarea" id="input" v-autosize="input">{{ input }}</textarea>
+      <textarea :value="input" @input="updateTextarea" id="input" v-autosize="input" autofocus>{{ input }}</textarea>
       <div id="output" class="output">
         <div class="item" v-for="(line, index) in output" :key="index">
           <a href="#" 
@@ -41,6 +41,15 @@ const CURRENCY_KEY = STORAGE_KEY + '_currencies'
 const debounce = require('lodash.debounce')
 
 import Peg from '../parser.js'
+//Vue.use(Peg)
+
+/*
+import Codeflask from '../assets/js/codeflask.js'
+var flask = new CodeFlask;
+flask.run('#input', {
+  language: 'javascript'
+});
+*/
 
 //const peg = require("pegjs");
 //var parser = peg.generate("start = ('a' / 'b')+");
@@ -73,7 +82,7 @@ export default {
       this.input = data.input
       this.rawOutput = data.rawOutput
     }
-    
+    console.log('Started')
     this.output = this.parseText(this.input)
     this.currencies = this.populateCurrencies()
   },
@@ -91,7 +100,8 @@ export default {
     updateTextarea: debounce(function (e) {
       this.input = e.target.value
       this.output = this.parseText(this.input)
-
+      this.generateRawOutput(this.output)
+      this.saveData()
     }, 300),
     parseText(input) {
 
@@ -123,8 +133,6 @@ export default {
           }
         }
 
-        this.generateRawOutput(output)
-        this.saveData()
         return output  
       }
       catch(err) {
@@ -260,7 +268,7 @@ export default {
     },
     fetchCurrencies: function() {
 
-      var currencies = this.axios.get('https://api.fixer.io/latest?base=this.page.currency').then((response) => {
+      var currencies = this.axios.get('https://api.fixer.io/latest?base=' + this.page.currency).then((response) => {
         return response.data
       })
       // Used for testing
@@ -290,6 +298,7 @@ export default {
 
 .note {
   max-width: 720px;
+  min-height: 200px;
   //max-width: 100%;
   margin: 0 auto;
   position: relative;
@@ -325,13 +334,6 @@ header {
     display: inline-block;
     margin-left: 0;
   }   
-}
-
-
-.note {
-  border-radius: 6px;
-  min-height: 200px;
-  margin: $base-padding*2 auto;
 }
 
 textarea {

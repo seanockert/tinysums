@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+docs/
+syntax-highlight/
+npm-debug.log
+package.json
+README.md
+webpack.config.js
+.old
+.map

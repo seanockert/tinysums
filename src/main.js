@@ -10,17 +10,18 @@ if ('addEventListener' in document) {
   }, false)
 }
 
-//import Autosize from 'autosize'
-//Autosize(document.querySelector('textarea'))
-
 var VueAutosize = require('vue-autosize')
 Vue.use(VueAutosize)
 
-import Prism from 'prismjs'
-//import Codeflask from 'codeflask'
+//import VuePrism from 'vue-prism'
+//Vue.use(VuePrism)
+//import 'prismjs/themes/prism.css'
 
-//import VueClipboards from 'vue-clipboards'
-//Vue.use(VueClipboards)
+//import Codeflask from '../src/assets/js/codeflask.js'
+//Vue.use(Codeflask)
+
+//import Peg from '../src/parser.js'
+//Page.use(Peg)
 
 import VueClipboard from 'vue-clipboard2'
 Vue.use(VueClipboard)
@@ -38,7 +39,7 @@ Vue.use(VueAxios, axios)
 // Set up possible routes
 const routes = [
   { path: '/', exact: true, name: 'page', component: Page },
-  //{ path: '/:page', name: 'page', component: Page }
+  { path: '/:page', name: 'page', component: Page }
 ]
 
 const router = new VueRouter({

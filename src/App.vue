@@ -114,7 +114,7 @@ export default {
     // Provide a key for the router so the transition will change 
     // between the same view eg. /hello/a and hello/b
     // To transition all pages the same just use :key="$route.fullPath"  
-    key () { 
+    key () {
       if (this.$route.name == 'page') { 
         return this.$route.name 
       } else { 
