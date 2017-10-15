@@ -1,7 +1,14 @@
 <template>
   <div :data-id=page.id id="page">
     <div class="note">
-      <textarea :value="input" @input="updateTextarea" id="input" v-autosize="input" autofocus>{{ input }}</textarea>
+      <textarea 
+        :value="input" 
+        @input="updateTextarea" 
+        id="input" 
+        v-autosize="input" 
+        v-model="input" 
+        autofocus
+        >{{ input }}</textarea>
       <div id="output" class="output">
         <div class="item" v-for="(line, index) in output" :key="index">
           <a href="#" 
@@ -13,6 +20,7 @@
           </a>
         </div>
       </div>
+      <prism language="javascript" class="sh-input">{{ inputTemp }}</prism>
     </div>
 
     <div class="options">
@@ -26,8 +34,9 @@
           class="button button-share" 
           v-clipboard:copy="rawOutput"
           v-clipboard:success="copySuccess"
-          v-clipboard:error="copyError">
-          Share &rarr;
+          v-clipboard:error="copyError"
+          title="Click to copy everything">
+          Copy all
         </button>
       </div>
     </div>
@@ -41,18 +50,9 @@ const CURRENCY_KEY = STORAGE_KEY + '_currencies'
 const debounce = require('lodash.debounce')
 
 import Peg from '../parser.js'
-//Vue.use(Peg)
+import PrismJS from '../prism.min.js'
+import Prism from 'vue-prism-component'
 
-/*
-import Codeflask from '../assets/js/codeflask.js'
-var flask = new CodeFlask;
-flask.run('#input', {
-  language: 'javascript'
-});
-*/
-
-//const peg = require("pegjs");
-//var parser = peg.generate("start = ('a' / 'b')+");
 
 export default {
   name: 'page',
@@ -66,6 +66,7 @@ export default {
         currency: 'AUD'
       },
       input: '// Add up some stuff\r\ndays = 15\r\nfood: $12 * days\r\ntransport: $3.50 * days\r\n\r\nsum\r\n\r\n20kg plus 1900g\r\n$4000.22 at 3% pa\r\n32% off $429\r\nnow',
+      inputTemp: '',
       currencies: '',
       supportedCurrencies: ['AUD', 'USD', 'CAD', 'GBP', 'EUR', 'JPY', 'THB', 'HKD', 'NZD', 'CHF', 'MXN', 'CNY'],
       // Full list
@@ -75,33 +76,45 @@ export default {
       store: []
     }  
   },  
+  components: {
+    Peg,
+    Prism
+  },
   created: function () {
+
     const data = this.fetchData(this.page.id) 
     if (data) {
       this.page.id = data.id
       this.input = data.input
       this.rawOutput = data.rawOutput
     }
-    console.log('Started')
     this.output = this.parseText(this.input)
     this.currencies = this.populateCurrencies()
-  },
-  watch: {
+    this.inputTemp = this.input
 
   },
-  computed: {
-    compiledText: function () {
-      return this.parseText(this.input)
+  updated: function() {
+
+  },
+  watch: {
+    // For updating Prism highlight
+    input: function(val, oldVal){
+      this.inputTemp = val
     }
+  },
+  computed: {
   },
 
   methods: {
 
     updateTextarea: debounce(function (e) {
+      
+      this.input = e.target.value
       this.input = e.target.value
       this.output = this.parseText(this.input)
       this.generateRawOutput(this.output)
       this.saveData()
+
     }, 300),
     parseText(input) {
 
@@ -343,18 +356,30 @@ textarea {
   width: 100%;
   min-height: calc(100vh - 125px);
   background-color: transparent;
+  font-color: transparent;
   outline: none;
   resize: none;
+  z-index: 1;
+  opacity: 0.4;
+  outline: none;
+  color: #000;
 }
 
 textarea, 
-.output {
+.output,
+.sh-input {
   font-family: 'Montserrat', sans-serif;
   font-size: 1em;
   line-height: 1.5;
   text-align: left;
   padding: $base-padding;
   padding-top: 0;
+}
+
+textarea, 
+.sh-input {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .output {
@@ -365,6 +390,23 @@ textarea,
   border-left: 1px solid #ddd;
   color: $color-teal;
   height: inherit;
+}
+
+.sh-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  pointer-events: none;
+  overflow-y: auto;
+  z-index: 3;
+
+  code {
+    font-size: inherit;
+    font-family: inherit;
+    color: inherit;
+    display: block;
+  }
 }
 
 .item {
@@ -419,7 +461,8 @@ textarea,
   }
 
   textarea, 
-  .output {
+  .output,
+  .sh-input {
     font-size: 1.2em;
     line-height: 1.5;
     padding: $base-padding*2;

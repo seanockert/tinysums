@@ -15,10 +15,9 @@ Vue.use(VueAutosize)
 
 //import VuePrism from 'vue-prism'
 //Vue.use(VuePrism)
-//import 'prismjs/themes/prism.css'
 
-//import Codeflask from '../src/assets/js/codeflask.js'
-//Vue.use(Codeflask)
+//import Prism from 'vue-prism-component'
+//Vue.use(Prism)
 
 //import Peg from '../src/parser.js'
 //Page.use(Peg)

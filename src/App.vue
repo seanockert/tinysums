@@ -128,7 +128,6 @@ export default {
 <style lang="sass">
 @import "./assets/scss/_reset.scss";
 @import "./assets/scss/_variables.scss";
-@import "./assets/scss/_codeflask.scss";
 @import "./assets/scss/_prism.scss";
 @import "./assets/scss/_help.scss";
 

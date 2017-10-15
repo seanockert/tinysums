@@ -54,3 +54,5 @@ sum
 # TODO
 - Add syntax highlighting (Codeflask)
 - Improve error handling (gracefully fail Peg parser)
+- Autosize textarea not setting height on page load
+- Correct currency selector
