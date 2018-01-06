@@ -24,11 +24,11 @@
     </div>
 
     <div class="options">
-      <div class="left">
+      <!--<div class="left">
         <select v-model="page.currency">
           <option v-for="currency in supportedCurrencies">{{ currency }}</option>
         </select>
-      </div>    
+      </div>-->   
       <div class="right">
         <button 
           class="button button-share" 
@@ -454,6 +454,12 @@ textarea,
 .right { float: right }
 .left { float: left }
 
+
+.ios {
+  .sh-input code {
+    padding-left: 3px
+  }
+}
 
 @media (min-width: 560px) {
   header {

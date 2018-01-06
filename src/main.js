@@ -10,6 +10,10 @@ if ('addEventListener' in document) {
   }, false)
 }
 
+if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+  document.documentElement.className += ' ios';
+}
+
 var VueAutosize = require('vue-autosize')
 Vue.use(VueAutosize)
 
@@ -18,9 +22,6 @@ Vue.use(VueAutosize)
 
 //import Prism from 'vue-prism-component'
 //Vue.use(Prism)
-
-//import Peg from '../src/parser.js'
-//Page.use(Peg)
 
 import VueClipboard from 'vue-clipboard2'
 Vue.use(VueClipboard)

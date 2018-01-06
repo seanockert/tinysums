@@ -2,5 +2,5 @@
 node_modules/
 dist/
 npm-debug.log
-syntax-highlight/
+_mockups/
 .old

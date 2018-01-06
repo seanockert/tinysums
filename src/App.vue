@@ -218,4 +218,8 @@ code {
     }
   }
 } 
+
+.sidebar {
+  -webkit-overflow-scrolling: touch
+}
 </style>
