@@ -89,6 +89,8 @@
             <div><span>today to 20/10/2018</span> <em></em></div>
           </li>
         </ul> 
+
+        <p>By Sean. <a href="https://github.com/seanockert/tinysums" title="View project on GitHub">Source on GitHub</a><br><br></p>
          
       </div>
     </off-canvas>
