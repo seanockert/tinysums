@@ -5,15 +5,18 @@
  * @author Lea Verou
  */
 
-
-pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection,
-code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection {
+pre[class*="language-"]::-moz-selection,
+pre[class*="language-"] ::-moz-selection,
+code[class*="language-"]::-moz-selection,
+code[class*="language-"] ::-moz-selection {
 	text-shadow: none;
 	background: #b3d4fc;
 }
 
-pre[class*="language-"]::selection, pre[class*="language-"] ::selection,
-code[class*="language-"]::selection, code[class*="language-"] ::selection {
+pre[class*="language-"]::selection,
+pre[class*="language-"] ::selection,
+code[class*="language-"]::selection,
+code[class*="language-"] ::selection {
 	text-shadow: none;
 	background: #b3d4fc;
 }
@@ -25,15 +28,14 @@ code[class*="language-"]::selection, code[class*="language-"] ::selection {
 	}
 }
 
-
 :not(pre) > code[class*="language-"],
 pre[class*="language-"] {
 }
 
 /* Inline code */
 :not(pre) > code[class*="language-"] {
-	padding: .1em;
-	border-radius: .3em;
+	padding: 0.1em;
+	border-radius: 0.3em;
 }
 
 .token.comment,
@@ -48,7 +50,7 @@ pre[class*="language-"] {
 }
 
 .namespace {
-	opacity: .7;
+	opacity: 0.7;
 }
 
 .token.property,
@@ -58,7 +60,11 @@ pre[class*="language-"] {
 .token.constant,
 .token.symbol,
 .token.deleted {
-	color: #905;
+	color: hsl(286, 60%, 67%);
+}
+
+.token.operator {
+	color: hsl(207, 82%, 66%) !important
 }
 
 .token.selector,
@@ -76,7 +82,7 @@ pre[class*="language-"] {
 .language-css .token.string,
 .style .token.string {
 	color: #a67f59;
-	background: hsla(0, 0%, 100%, .5);
+	background: hsla(0, 0%, 100%, 0.5);
 }
 
 .token.atrule,
@@ -86,7 +92,7 @@ pre[class*="language-"] {
 }
 
 .token.function {
-	color: #DD4A68;
+	color: #dd4a68;
 }
 
 .token.regex,

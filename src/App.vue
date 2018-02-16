@@ -2,7 +2,7 @@
   <div id="app">
     <header>
       <h2><em>Tiny</em>Sums</h2> <!--<small> Make quick calculations.</small>-->
-      <button class="button right" @click="show = !show">Help</button>
+      <button class="button right" @click="show = !show">How to use</button>
       <div class="clear"></div>
     </header>
     <transition :name="transitionName" mode="out-in">

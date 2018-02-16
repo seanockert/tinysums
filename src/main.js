@@ -14,17 +14,17 @@ if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
   document.documentElement.className += ' ios';
 }
 
+// Auto resize textarea
 var VueAutosize = require('vue-autosize')
 Vue.use(VueAutosize)
 
-//import VuePrism from 'vue-prism'
-//Vue.use(VuePrism)
-
-//import Prism from 'vue-prism-component'
-//Vue.use(Prism)
-
+// Copy to clipboard
 import VueClipboard from 'vue-clipboard2'
 Vue.use(VueClipboard)
+
+// Keyboard shortcuts
+import VueShortkey from "vue-shortkey";
+Vue.use(VueShortkey);
 
 // Init router
 import VueRouter from 'vue-router'
@@ -35,7 +35,6 @@ import axios from 'axios'
 import VueAxios from 'vue-axios'
 Vue.use(VueAxios, axios)
 
-//console.log(window.location.pathname);
 // Set up possible routes
 const routes = [
   { path: '/', exact: true, name: 'page', component: Page },
@@ -50,6 +49,7 @@ const router = new VueRouter({
   root: '/'
 })
 
+// Init app
 const app = new Vue({
   router,
   el: '#app',

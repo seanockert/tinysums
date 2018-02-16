@@ -1,8 +1,10 @@
 <template>
-  <div :data-id=page.id id="page">
+  <div :data-id=page.id id="page" v-shortkey="['meta', 'c']" @shortkey="copyContent()" :class="{ copied: copied }">
+    <!-- Notification on copy -->
+    <div class="toast" @click="copied = ''">Copied to clipboard!</div>
+    
     <div class="note">
-      <textarea 
-        :value="input" 
+      <textarea  
         @input="updateTextarea" 
         id="input" 
         v-autosize="input" 
@@ -73,7 +75,8 @@ export default {
       //supportedCurrencies: ['AUD', 'BGN', 'BRL', 'CAD', 'CNY', 'DKK', 'GBP', 'HKD', 'HRK', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'USD', 'ZAR', 'EUR'],
       output: [],
       rawOutput: [],
-      store: []
+      store: [],
+      copied: ''
     }  
   },  
   components: {
@@ -181,15 +184,6 @@ export default {
       return line
 
     },
-    copySuccess(e) {
-      console.log('Copied')
-    },
-    copyError(e) {
-      console.log('Copy error')
-    },
-    copyItem(e) {
-      console.log('Copy item')
-    },
     formatNumber(n, prefix, c, d, t) {
       // Format currency
       // n = number
@@ -255,6 +249,37 @@ export default {
       this.rawOutput = output
       return output
 
+    },
+    constructOutput: function () {
+      // Loop through this.sorted and serialize content
+      const parsedSections = this.parsedSections
+      var output = '',
+          sorted = this.sorted
+
+      sorted.forEach(function (ref, i) {
+        output += parsedSections[ref.i].options[ref.j].content
+      })
+
+      return output
+    },
+    copyContent: function (e) {
+      // Copy the contents of textarea
+      //this.$copyText(this.rawOutput).then(function (e) {
+      //  this.copySuccess()
+      //})
+    },
+    copySuccess: function() {
+      // Show toast for a second
+      console.log('Copied content')
+      var copied = this.copied
+      this.copied = 'copied'
+      setTimeout(() => this.copied = '', 1200);
+    },
+    copyError(e) {
+      console.log('Copy error')
+    },
+    copyItem(e) {
+      console.log('Copy item')
     },
     populateCurrencies: function() {
 
@@ -420,11 +445,37 @@ textarea,
     display: inline-block;
     padding: 0 $base-padding/2;
     border-radius: 30px;
-    transition: all 0.15s ease-out;
+    transition: all 0.15s $transition;
+    position: relative;
+
+    /*&:before {
+      display: block;
+      content: 'Copy value';
+      position: absolute;
+      bottom: 30px;
+      color: #fff;
+      background-color: rgba(0,0,0,0.7);
+      padding: $base-padding/2 $base-padding;
+      line-height: 1.2;
+      border-radius: 5px;
+      font-size: 0.7em;
+      z-index: 99;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.15s $transition;
+      transform: translate3d(0,5px,0);
+    }*/
     
     &:hover {
       color: #fff;
-      background-color: $color-teal
+      background-color: $color-teal;
+
+      &:before {
+        visibility: visible;
+        opacity: 1;
+        transform: translate3d(0,0,0);
+      }
     }
     
     &:focus {
@@ -460,6 +511,29 @@ textarea,
     padding-left: 3px
   }
 }
+
+// Show confirmation at top of screen when copied
+.toast {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  font-weight: bold;
+  text-align: center;
+  z-index: 99;
+  background-color: $color-green;
+  color: #fff;
+  padding: $base-padding;
+  transition: transform .15s $transition;
+  transform: translate3d(0,-50px,0);
+  transform-origin: top center;
+}
+
+.copied {
+  .toast { transform: translate3d(0,0,0) }
+}
+
 
 @media (min-width: 560px) {
   header {
